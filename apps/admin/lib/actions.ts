@@ -48,6 +48,20 @@ export async function deleteProduct(form: FormData) {
   redirect("/products");
 }
 
+export async function updateStock(form: FormData) {
+  await guard();
+  const updates: Promise<unknown>[] = [];
+  for (const [key, value] of form.entries()) {
+    if (!key.startsWith("stock_")) continue;
+    const stock = Math.max(0, Math.round(Number(value)) || 0);
+    updates.push(prisma.product.update({ where: { id: key.slice(6) }, data: { stock } }));
+  }
+  await Promise.all(updates);
+  revalidatePath("/stock");
+  revalidatePath("/products");
+  redirect("/stock?saved=1");
+}
+
 export async function addCategory(form: FormData) {
   await guard();
   const name = str(form, "name");
