@@ -14,8 +14,21 @@ model Category {
   products Product[]
 }
 
+/// A clothing label sold in the shop (our own Sakeena's line, or any other brand we stock).
+model Brand {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String    @default("")
+  logo        String    @default("") // uploaded image URL
+  active      Boolean   @default(true)
+  products    Product[]
+}
+
 model Product {
   id              String      @id @default(cuid())
+  brandId         String?
+  brand           Brand?      @relation(fields: [brandId], references: [id])
   name            String
   slug            String      @unique
   description     String
@@ -31,6 +44,21 @@ model Product {
   category        Category    @relation(fields: [categoryId], references: [id])
   createdAt       DateTime    @default(now())
   items           OrderItem[]
+  movements       StockMovement[]
+}
+
+/// Every change to stock is logged here: orders, cancellations and manual edits.
+model StockMovement {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  change    Int // negative = stock out, positive = stock in
+  after     Int // stock level after this change
+  reason    String // ORDER, CANCEL, RESTORE, MANUAL
+  ref       String? // order number, if any
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
 }
 
 model Coupon {
@@ -57,9 +85,21 @@ model Order {
   paymentMethod String
   paymentStatus String      @default("PENDING")
   paymentRef    String? // customer's transaction / reference id
+  deliveredAt   DateTime?
   status        String      @default("PENDING")
   createdAt     DateTime    @default(now())
+  trackingId    String?     @unique // unguessable id used in the customer's tracking link
   items         OrderItem[]
+  events        OrderEvent[]
+}
+
+/// Timeline of an order: one row each time its status changes.
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  createdAt DateTime @default(now())
 }
 
 model OrderItem {

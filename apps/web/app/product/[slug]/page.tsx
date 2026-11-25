@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma, finalPrice, formatPKR, parseLines, parseList } from "@sakeena/db";
 import { ProductImage } from "@/components/ProductImage";
@@ -14,12 +15,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const p = await prisma.product.findUnique({ where: { slug }, include: { category: true } });
+  const p = await prisma.product.findUnique({ where: { slug }, include: { category: true, brand: true } });
   if (!p || !p.active) notFound();
 
   const related = await prisma.product.findMany({
     where: { active: true, categoryId: p.categoryId, NOT: { id: p.id } },
     take: 4,
+    include: { brand: true },
   });
   const images = parseLines(p.images);
   const price = finalPrice(p.price, p.discountPercent);
@@ -33,7 +35,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           ))}
         </div>
         <div className="md:sticky md:top-32 md:self-start">
-          <p className="text-xs uppercase tracking-[0.4em] text-gold">{p.category.name}</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-gold">
+            {p.brand && <><Link href={`/brand/${p.brand.slug}`} className="underline underline-offset-4">{p.brand.name}</Link> · </>}
+            {p.category.name}
+          </p>
           <h1 className="mt-3 text-4xl md:text-5xl">{p.name}</h1>
           <p className="mt-5 text-2xl">
             <span className="text-emerald">{formatPKR(price)}</span>

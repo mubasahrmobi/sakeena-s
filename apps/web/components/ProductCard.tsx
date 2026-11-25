@@ -2,7 +2,7 @@ import Link from "next/link";
 import { finalPrice, formatPKR, parseLines } from "@sakeena/db/utils";
 import { ProductImage } from "./ProductImage";
 
-type P = { slug: string; name: string; price: number; discountPercent: number; images: string; stock: number };
+type P = { slug: string; name: string; price: number; discountPercent: number; images: string; stock: number; brand?: { name: string } | null };
 
 export function ProductCard({ p }: { p: P }) {
   const price = finalPrice(p.price, p.discountPercent);
@@ -19,7 +19,8 @@ export function ProductCard({ p }: { p: P }) {
           <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-2 text-center text-xs uppercase tracking-widest text-cream">Sold out</span>
         )}
       </div>
-      <h3 className="mt-4 text-lg leading-snug">{p.name}</h3>
+      {p.brand && <p className="mt-4 text-[11px] uppercase tracking-[0.3em] text-gold">{p.brand.name}</p>}
+      <h3 className={`${p.brand ? "mt-1" : "mt-4"} text-lg leading-snug`}>{p.name}</h3>
       <p className="mt-1 text-sm">
         <span className="font-medium text-emerald">{formatPKR(price)}</span>
         {p.discountPercent > 0 && <span className="ml-2 text-ink/40 line-through">{formatPKR(p.price)}</span>}

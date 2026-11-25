@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { randomBytes } from "crypto";
 import { prisma, formatPKR, ORDER_STATUSES, PAYMENT_STATUSES } from "@sakeena/db";
 import { Shell } from "@/components/Shell";
 import { updateOrder } from "@/lib/actions";
@@ -7,8 +8,15 @@ export const dynamic = "force-dynamic";
 
 export default async function OrderDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const o = await prisma.order.findUnique({ where: { id }, include: { items: true } });
+  let o = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!o) notFound();
+  // Older orders created before tracking existed get their private link the first time they're opened.
+  if (!o.trackingId) {
+    o = await prisma.order.update({ where: { id }, data: { trackingId: randomBytes(10).toString("hex") }, include: { items: true } });
+  }
+  const trackUrl = `${(process.env.WEB_URL ?? "http://localhost:3000").replace(/\/$/, "")}/track/${o.trackingId}`;
+  const waNumber = "92" + o.phone.replace(/\D/g, "").replace(/^(92|0)/, "");
+  const message = `Assalam-o-Alaikum ${o.name.split(" ")[0]}! Your Sakeena’s order ${o.orderNo} is ${o.status.toLowerCase()}. Track it anytime here: ${trackUrl}`;
   return (
     <Shell title={`Order ${o.orderNo}`}>
       <div className="grid max-w-5xl gap-8 md:grid-cols-2">
@@ -54,6 +62,16 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           <p className="text-xs text-ink/50">For JazzCash / Easypaisa / bank orders, check the transaction ID in your account, then mark payment as PAID. For COD, mark PAID after delivery.</p>
           <button className="btn-primary">Update order</button>
         </form>
+
+        <section className="space-y-3 bg-white p-6 md:col-span-2">
+          <h2 className="text-xl">Customer tracking link</h2>
+          <p className="text-sm text-ink/60">Private link for this order. When you change the status above, the customer sees it on this page.</p>
+          <input readOnly value={trackUrl} className="input" />
+          <div className="flex flex-wrap gap-3">
+            <a href={`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`} target="_blank" className="btn-gold">Send on WhatsApp</a>
+            <a href={trackUrl} target="_blank" className="btn-outline">Open page</a>
+          </div>
+        </section>
       </div>
     </Shell>
   );

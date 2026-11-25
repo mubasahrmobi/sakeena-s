@@ -8,7 +8,11 @@ export const dynamic = "force-dynamic";
 
 export default async function EditProduct({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [p, categories] = await Promise.all([prisma.product.findUnique({ where: { id } }), prisma.category.findMany()]);
+  const [p, categories, brands] = await Promise.all([
+    prisma.product.findUnique({ where: { id } }),
+    prisma.category.findMany(),
+    prisma.brand.findMany({ orderBy: { name: "asc" } }),
+  ]);
   if (!p) notFound();
   return (
     <Shell
@@ -20,7 +24,7 @@ export default async function EditProduct({ params }: { params: Promise<{ id: st
         </form>
       }
     >
-      <ProductForm p={p} categories={categories} />
+      <ProductForm p={p} categories={categories} brands={brands} />
     </Shell>
   );
 }

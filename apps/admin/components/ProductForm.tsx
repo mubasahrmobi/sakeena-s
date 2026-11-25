@@ -3,10 +3,10 @@ import { ImageManager } from "./ImageManager";
 
 type P = {
   id?: string; name?: string; description?: string; price?: number; discountPercent?: number;
-  images?: string; sizes?: string; colors?: string; stock?: number; featured?: boolean; active?: boolean; categoryId?: string;
+  images?: string; sizes?: string; colors?: string; stock?: number; featured?: boolean; active?: boolean; categoryId?: string; brandId?: string | null;
 };
 
-export function ProductForm({ p = {}, categories }: { p?: P; categories: { id: string; name: string }[] }) {
+export function ProductForm({ p = {}, categories, brands }: { p?: P; categories: { id: string; name: string }[]; brands: { id: string; name: string }[] }) {
   return (
     <form action={saveProduct} className="grid max-w-3xl gap-5 bg-white p-6 md:grid-cols-2">
       {p.id && <input type="hidden" name="id" value={p.id} />}
@@ -19,6 +19,13 @@ export function ProductForm({ p = {}, categories }: { p?: P; categories: { id: s
         <label className="label">Category</label>
         <select name="categoryId" required defaultValue={p.categoryId} className="input">
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="label">Brand</label>
+        <select name="brandId" defaultValue={p.brandId ?? ""} className="input">
+          <option value="">— No brand —</option>
+          {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
       </div>
       <div><label className="label">Sizes (comma separated)</label><input name="sizes" defaultValue={p.sizes ?? "S,M,L,XL"} className="input" /></div>

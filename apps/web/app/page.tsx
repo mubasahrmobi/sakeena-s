@@ -2,14 +2,20 @@ import Link from "next/link";
 import { prisma } from "@sakeena/db";
 import { ProductCard } from "@/components/ProductCard";
 import { LogoMark } from "@/components/Logo";
+import { BrandTile } from "@/components/BrandTile";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [featured, sale, categories] = await Promise.all([
-    prisma.product.findMany({ where: { active: true, featured: true }, take: 4, orderBy: { createdAt: "desc" } }),
-    prisma.product.findMany({ where: { active: true, discountPercent: { gt: 0 } }, take: 4, orderBy: { discountPercent: "desc" } }),
+  const visible = { active: true, OR: [{ brandId: null }, { brand: { active: true } }] };
+  const [featured, sale, categories, brands] = await Promise.all([
+    prisma.product.findMany({ where: { ...visible, featured: true }, include: { brand: true }, take: 4, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where: { ...visible, discountPercent: { gt: 0 } }, include: { brand: true }, take: 4, orderBy: { discountPercent: "desc" } }),
     prisma.category.findMany(),
+    prisma.brand.findMany({
+      where: { active: true, products: { some: { active: true } } }, orderBy: { name: "asc" }, take: 8,
+      include: { _count: { select: { products: { where: { active: true } } } } },
+    }),
   ]);
   return (
     <>
@@ -43,6 +49,18 @@ export default async function Home() {
           <span>Cash on Delivery</span><span>JazzCash · Easypaisa</span><span>Nationwide delivery</span><span>7-day exchange</span>
         </div>
       </section>
+
+      {brands.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 pt-20">
+          <div className="mb-10 flex items-end justify-between">
+            <h2 className="text-4xl">Shop by brand</h2>
+            <Link href="/brands" className="text-sm uppercase tracking-widest text-emerald underline underline-offset-8">All brands</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+            {brands.map((b) => <BrandTile key={b.id} b={b} />)}
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-5 pt-20">
         <h2 className="text-center text-4xl">Shop by category</h2>

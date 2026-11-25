@@ -14,7 +14,7 @@ async function shrink(file: File, max = 1600): Promise<File> {
   return blob ? new File([blob], "photo.webp", { type: "image/webp" }) : file;
 }
 
-export function ImageManager({ initial }: { initial: string[] }) {
+export function ImageManager({ initial, name = "images", single = false }: { initial: string[]; name?: string; single?: boolean }) {
   const [urls, setUrls] = useState<string[]>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -43,7 +43,7 @@ export function ImageManager({ initial }: { initial: string[] }) {
 
   return (
     <div>
-      <input type="hidden" name="images" value={urls.join("\n")} />
+      <input type="hidden" name={name} value={urls.join("\n")} />
       <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
         {urls.map((u, i) => (
           <div key={u} className="relative border border-ink/10 bg-cream">
@@ -57,11 +57,11 @@ export function ImageManager({ initial }: { initial: string[] }) {
             </div>
           </div>
         ))}
-        <label className="flex aspect-[3/4] cursor-pointer flex-col items-center justify-center border border-dashed border-emerald/50 text-center text-xs uppercase tracking-widest text-emerald hover:bg-cream">
-          {busy ? "Uploading…" : "+ Upload photos"}
-          <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={busy}
+        {!(single && urls.length >= 1) && <label className="flex aspect-[3/4] cursor-pointer flex-col items-center justify-center border border-dashed border-emerald/50 text-center text-xs uppercase tracking-widest text-emerald hover:bg-cream">
+          {busy ? "Uploading…" : single ? "+ Upload logo" : "+ Upload photos"}
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple={!single} hidden disabled={busy}
             onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
-        </label>
+        </label>}
       </div>
       {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
       <p className="mt-2 text-xs text-ink/50">The first photo is the cover. Large photos are resized automatically. JPG, PNG or WebP.</p>

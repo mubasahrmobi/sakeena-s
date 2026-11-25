@@ -30,6 +30,12 @@ async function main() {
       },
     });
   }
+  // Our own label. Any product without a brand belongs to it.
+  const own = await prisma.brand.upsert({
+    where: { slug: "sakeenas" }, update: {},
+    create: { name: "Sakeena's", slug: "sakeenas", description: "Our own label — calm, modern Pakistani clothing." },
+  });
+  await prisma.product.updateMany({ where: { brandId: null }, data: { brandId: own.id } });
   await prisma.coupon.upsert({ where: { code: "WELCOME10" }, update: {}, create: { code: "WELCOME10", percent: 10 } });
   console.log("Seeded.");
 }

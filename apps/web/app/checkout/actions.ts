@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { randomBytes } from "crypto";
 import { prisma, finalPrice, shippingFor, PAYMENT_METHODS } from "@sakeena/db";
 
 type Line = { productId: string; size: string; color: string; qty: number };
@@ -24,7 +25,7 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
 
   // Re-price everything on the server — never trust prices sent by the browser.
   const products = await prisma.product.findMany({ where: { id: { in: lines.map((l) => l.productId) }, active: true } });
-  const items = [];
+  const items: { productId: string; name: string; size: string; color: string | null; price: number; qty: number }[] = [];
   let subtotal = 0;
   for (const l of lines) {
     const p = products.find((x) => x.id === l.productId);
@@ -47,22 +48,41 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
   const shipping = shippingFor(subtotal - discount);
   const total = subtotal - discount + shipping;
   const orderNo = "SK-" + Math.floor(100000 + Math.random() * 900000);
+  const trackingId = randomBytes(10).toString("hex"); // 20 random hex chars, impossible to guess
 
-  await prisma.$transaction([
-    prisma.order.create({
-      data: {
-        orderNo, name, phone, email: email || null, address, city, notes: notes || null,
-        subtotal, discount, shipping, total, couponCode: appliedCoupon,
-        paymentMethod: method,
-        paymentStatus: pm.manual ? "AWAITING_VERIFICATION" : "PENDING",
-        paymentRef: paymentRef || null,
-        items: { create: items },
-      },
-    }),
-    ...items.map((i) =>
-      prisma.product.update({ where: { id: i.productId }, data: { stock: { decrement: i.qty } } })
-    ),
-  ]);
+  // Stock is reserved the moment the order is placed. The guarded update makes sure two
+  // customers can never buy the last item at the same time.
+  try {
+    await prisma.$transaction(async (tx) => {
+      for (const i of items) {
+        const ok = await tx.product.updateMany({
+          where: { id: i.productId, stock: { gte: i.qty } },
+          data: { stock: { decrement: i.qty } },
+        });
+        if (ok.count === 0) throw new Error(`Sorry, ${i.name} just sold out.`);
+      }
+      await tx.order.create({
+        data: {
+          orderNo, name, phone, email: email || null, address, city, notes: notes || null,
+          subtotal, discount, shipping, total, couponCode: appliedCoupon,
+          paymentMethod: method,
+          paymentStatus: pm.manual ? "AWAITING_VERIFICATION" : "PENDING",
+          paymentRef: paymentRef || null,
+          trackingId,
+          items: { create: items },
+          events: { create: { status: "PENDING" } },
+        },
+      });
+      for (const i of items) {
+        const p = await tx.product.findUnique({ where: { id: i.productId } });
+        await tx.stockMovement.create({
+          data: { productId: i.productId, change: -i.qty, after: p?.stock ?? 0, reason: "ORDER", ref: orderNo },
+        });
+      }
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Could not place the order. Please try again." };
+  }
 
-  redirect(`/order/${orderNo}`);
+  redirect(`/track/${trackingId}?placed=1`);
 }

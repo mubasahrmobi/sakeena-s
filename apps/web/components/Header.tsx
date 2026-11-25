@@ -6,8 +6,10 @@ import { useCart } from "@/lib/cart";
 
 const links = [
   { href: "/shop", label: "Shop" },
+  { href: "/brands", label: "Brands" },
   { href: "/shop?sale=1", label: "Sale" },
   { href: "/about", label: "Our Story" },
+  { href: "/track", label: "Track Order" },
 ];
 
 export function Header() {

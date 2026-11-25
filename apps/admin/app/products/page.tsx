@@ -1,33 +1,49 @@
 import Link from "next/link";
 import { prisma, finalPrice, formatPKR } from "@sakeena/db";
 import { Shell } from "@/components/Shell";
+import { DataTable, FilterPills, type Column } from "@/components/DataTable";
+import { tableParams, type SP } from "@/lib/table";
 
 export const dynamic = "force-dynamic";
 
-export default async function Products() {
-  const products = await prisma.product.findMany({ include: { category: true }, orderBy: { createdAt: "desc" } });
+type Row = Awaited<ReturnType<typeof load>>["rows"][number];
+
+async function load(sp: SP) {
+  const t = tableParams(sp, { sorts: ["name", "brand", "category", "price", "discountPercent", "stock", "createdAt"], defaultSort: "createdAt" });
+  const where = {
+    ...(sp.show === "sale" ? { discountPercent: { gt: 0 } } : {}),
+    ...(sp.show === "hidden" ? { active: false } : {}),
+    ...(sp.brand ? { brandId: sp.brand } : {}),
+    ...(t.q ? { OR: [{ name: { contains: t.q } }, { category: { name: { contains: t.q } } }, { brand: { name: { contains: t.q } } }] } : {}),
+  };
+  const orderBy = t.sort === "category" ? { category: { name: t.dir } } : t.sort === "brand" ? { brand: { name: t.dir } } : { [t.sort]: t.dir };
+  const [rows, total] = await Promise.all([
+    prisma.product.findMany({ where, orderBy, include: { category: true, brand: true }, skip: t.skip, take: t.take }),
+    prisma.product.count({ where }),
+  ]);
+  return { t, rows, total };
+}
+
+export default async function Products({ searchParams }: { searchParams: Promise<SP> }) {
+  const sp = await searchParams;
+  const { t, rows, total } = await load(sp);
+  const columns: Column<Row>[] = [
+    { key: "name", label: "Name", sortKey: "name", render: (p) => <Link href={`/products/${p.id}`} className="text-emerald underline">{p.name}</Link> },
+    { key: "brand", label: "Brand", sortKey: "brand", render: (p) => p.brand?.name ?? "—" },
+    { key: "cat", label: "Category", sortKey: "category", render: (p) => p.category.name },
+    { key: "price", label: "Price", sortKey: "price", render: (p) => formatPKR(p.price) },
+    { key: "disc", label: "Discount", sortKey: "discountPercent", render: (p) => (p.discountPercent ? `${p.discountPercent}%` : "—") },
+    { key: "sale", label: "Sale price", render: (p) => formatPKR(finalPrice(p.price, p.discountPercent)) },
+    { key: "stock", label: "Stock", sortKey: "stock", render: (p) => <span className={p.stock <= 5 ? "text-red-700" : ""}>{p.stock}</span> },
+    { key: "status", label: "Status", render: (p) => (p.active ? "Live" : "Hidden") },
+  ];
   return (
     <Shell title="Products" action={<Link href="/products/new" className="btn-primary">Add product</Link>}>
-      <div className="overflow-x-auto bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-ink/10 text-xs uppercase tracking-widest text-ink/50">
-            <tr><th className="p-4">Name</th><th>Category</th><th>Price</th><th>Discount</th><th>Sale price</th><th>Stock</th><th>Status</th></tr>
-          </thead>
-          <tbody className="divide-y divide-ink/10">
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td className="p-4"><Link href={`/products/${p.id}`} className="text-emerald underline">{p.name}</Link></td>
-                <td>{p.category.name}</td><td>{formatPKR(p.price)}</td>
-                <td>{p.discountPercent ? `${p.discountPercent}%` : "—"}</td>
-                <td>{formatPKR(finalPrice(p.price, p.discountPercent))}</td>
-                <td className={p.stock <= 5 ? "text-red-700" : ""}>{p.stock}</td>
-                <td>{p.active ? "Live" : "Hidden"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {products.length === 0 && <p className="p-6 text-ink/50">No products yet.</p>}
-      </div>
+      <DataTable
+        path="/products" sp={sp} columns={columns} rows={rows} total={total} {...t}
+        placeholder="Search name, brand or category…" empty="No products found."
+        filters={<FilterPills path="/products" sp={sp} param="show" options={[{ value: "", label: "All" }, { value: "sale", label: "On sale" }, { value: "hidden", label: "Hidden" }]} />}
+      />
     </Shell>
   );
 }

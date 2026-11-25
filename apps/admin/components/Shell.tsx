@@ -6,6 +6,8 @@ import { destroySession } from "@/lib/auth";
 const nav = [
   { href: "/", label: "Dashboard" },
   { href: "/orders", label: "Orders" },
+  { href: "/sales", label: "Sales" },
+  { href: "/brands", label: "Brands" },
   { href: "/products", label: "Products" },
   { href: "/stock", label: "Stock" },
   { href: "/categories", label: "Categories" },

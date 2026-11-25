@@ -10,7 +10,7 @@ export default async function Dashboard() {
     prisma.product.count(),
     prisma.order.count({ where: { status: "PENDING" } }),
     prisma.order.count({ where: { paymentStatus: "AWAITING_VERIFICATION" } }),
-    prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
+    prisma.order.aggregate({ _sum: { total: true }, where: { status: "DELIVERED" } }),
     prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
     prisma.product.findMany({ where: { stock: { lte: 5 }, active: true }, take: 6 }),
   ]);
@@ -23,7 +23,7 @@ export default async function Dashboard() {
   return (
     <Shell title="Dashboard">
       <div className="grid gap-4 md:grid-cols-5">
-        {stat("Revenue", formatPKR(revenue._sum.total ?? 0), "/orders")}
+        {stat("Sales (delivered)", formatPKR(revenue._sum.total ?? 0), "/sales")}
         {stat("Orders", orders, "/orders")}
         {stat("New orders", pending, "/orders")}
         {stat("Payments to verify", verify, "/orders")}

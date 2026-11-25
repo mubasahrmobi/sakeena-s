@@ -8,25 +8,29 @@ export const metadata = { title: "Shop" };
 export default async function Shop({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; sale?: string; sort?: string; q?: string }>;
+  searchParams: Promise<{ category?: string; sale?: string; sort?: string; q?: string; brand?: string }>;
 }) {
-  const { category, sale, sort, q } = await searchParams;
+  const { category, sale, sort, q, brand } = await searchParams;
   const orderBy =
     sort === "price-asc" ? { price: "asc" as const }
     : sort === "price-desc" ? { price: "desc" as const }
     : { createdAt: "desc" as const };
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, brands] = await Promise.all([
     prisma.product.findMany({
       where: {
         active: true,
+        OR: [{ brandId: null }, { brand: { active: true } }],
         ...(category ? { category: { slug: category } } : {}),
+        ...(brand ? { brand: { slug: brand } } : {}),
         ...(sale ? { discountPercent: { gt: 0 } } : {}),
         ...(q ? { name: { contains: q } } : {}),
       },
       orderBy,
+      include: { brand: true },
     }),
     prisma.category.findMany(),
+    prisma.brand.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
   ]);
 
   const pill = (active: boolean) =>
@@ -45,6 +49,10 @@ export default async function Shop({
         </div>
         <form className="flex gap-2 text-sm">
           {category && <input type="hidden" name="category" value={category} />}
+          <select name="brand" defaultValue={brand ?? ""} className="input !w-44">
+            <option value="">All brands</option>
+            {brands.map((b) => <option key={b.id} value={b.slug}>{b.name}</option>)}
+          </select>
           {sale && <input type="hidden" name="sale" value={sale} />}
           <input name="q" defaultValue={q} placeholder="Search…" className="input !w-44" />
           <select name="sort" defaultValue={sort} className="input !w-44">
