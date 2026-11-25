@@ -23,7 +23,7 @@ async function load(sp: SP) {
   const base = { status: "DELIVERED", ...(from ? { deliveredAt: { gte: from } } : {}) };
   const where = {
     ...base,
-    ...(t.q ? { OR: [{ orderNo: { contains: t.q } }, { name: { contains: t.q } }, { city: { contains: t.q } }] } : {}),
+    ...(t.q ? { OR: [{ orderNo: { contains: t.q, mode: "insensitive" as const } }, { name: { contains: t.q, mode: "insensitive" as const } }, { city: { contains: t.q, mode: "insensitive" as const } }] } : {}),
   };
   const [rows, total, agg, items, openAgg] = await Promise.all([
     prisma.order.findMany({ where, orderBy: { [t.sort]: t.dir }, include: { items: true }, skip: t.skip, take: t.take }),

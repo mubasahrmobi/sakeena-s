@@ -14,7 +14,7 @@ async function load(sp: SP) {
   const where = {
     ...(sp.f === "low" ? { stock: { gt: 0, lte: 5 } } : {}),
     ...(sp.f === "out" ? { stock: 0 } : {}),
-    ...(t.q ? { OR: [{ name: { contains: t.q } }, { category: { name: { contains: t.q } } }] } : {}),
+    ...(t.q ? { OR: [{ name: { contains: t.q, mode: "insensitive" as const } }, { category: { name: { contains: t.q, mode: "insensitive" as const } } }] } : {}),
   };
   const orderBy = t.sort === "category" ? { category: { name: t.dir } } : { [t.sort]: t.dir };
   const [products, total, all] = await Promise.all([

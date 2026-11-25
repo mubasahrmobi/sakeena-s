@@ -13,7 +13,7 @@ async function load(sp: SP) {
   const where = {
     ...(sp.status ? { status: sp.status } : {}),
     ...(sp.pay === "verify" ? { paymentStatus: "AWAITING_VERIFICATION" } : {}),
-    ...(t.q ? { OR: [{ orderNo: { contains: t.q } }, { name: { contains: t.q } }, { phone: { contains: t.q } }, { city: { contains: t.q } }] } : {}),
+    ...(t.q ? { OR: [{ orderNo: { contains: t.q, mode: "insensitive" as const } }, { name: { contains: t.q, mode: "insensitive" as const } }, { phone: { contains: t.q, mode: "insensitive" as const } }, { city: { contains: t.q, mode: "insensitive" as const } }] } : {}),
   };
   const [rows, total] = await Promise.all([
     prisma.order.findMany({ where, orderBy: { [t.sort]: t.dir }, skip: t.skip, take: t.take }),

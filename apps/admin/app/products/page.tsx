@@ -14,7 +14,7 @@ async function load(sp: SP) {
     ...(sp.show === "sale" ? { discountPercent: { gt: 0 } } : {}),
     ...(sp.show === "hidden" ? { active: false } : {}),
     ...(sp.brand ? { brandId: sp.brand } : {}),
-    ...(t.q ? { OR: [{ name: { contains: t.q } }, { category: { name: { contains: t.q } } }, { brand: { name: { contains: t.q } } }] } : {}),
+    ...(t.q ? { OR: [{ name: { contains: t.q, mode: "insensitive" as const } }, { category: { name: { contains: t.q, mode: "insensitive" as const } } }, { brand: { name: { contains: t.q, mode: "insensitive" as const } } }] } : {}),
   };
   const orderBy = t.sort === "category" ? { category: { name: t.dir } } : t.sort === "brand" ? { brand: { name: t.dir } } : { [t.sort]: t.dir };
   const [rows, total] = await Promise.all([

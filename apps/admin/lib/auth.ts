@@ -2,7 +2,12 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const COOKIE = "sakeena_admin";
-const secret = () => new TextEncoder().encode(process.env.AUTH_SECRET || "dev-only-secret-change-me");
+const secret = () => {
+  const s = process.env.AUTH_SECRET;
+  // Never fall back to a known secret on a live site: anyone could forge an admin login.
+  if (!s && process.env.NODE_ENV === "production") throw new Error("AUTH_SECRET is not set");
+  return new TextEncoder().encode(s || "dev-only-secret-change-me");
+};
 
 export async function createSession() {
   const token = await new SignJWT({ role: "admin" })

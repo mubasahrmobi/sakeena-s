@@ -10,7 +10,7 @@ async function load(sp: SP) {
   const t = tableParams(sp, { sorts: ["createdAt", "change", "after", "reason"], defaultSort: "createdAt" });
   const where = {
     ...(sp.reason ? { reason: sp.reason } : {}),
-    ...(t.q ? { OR: [{ ref: { contains: t.q } }, { product: { name: { contains: t.q } } }] } : {}),
+    ...(t.q ? { OR: [{ ref: { contains: t.q, mode: "insensitive" as const } }, { product: { name: { contains: t.q, mode: "insensitive" as const } } }] } : {}),
   };
   const [rows, total] = await Promise.all([
     prisma.stockMovement.findMany({ where, orderBy: { [t.sort]: t.dir }, include: { product: true }, skip: t.skip, take: t.take }),

@@ -6,7 +6,9 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("sakeena_admin")?.value;
   try {
     if (!token) throw new Error("no token");
-    await jwtVerify(token, new TextEncoder().encode(process.env.AUTH_SECRET || "dev-only-secret-change-me"));
+    const s = process.env.AUTH_SECRET;
+    if (!s && process.env.NODE_ENV === "production") throw new Error("AUTH_SECRET is not set");
+    await jwtVerify(token, new TextEncoder().encode(s || "dev-only-secret-change-me"));
     return NextResponse.next();
   } catch {
     return NextResponse.redirect(new URL("/login", req.url));

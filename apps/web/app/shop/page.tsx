@@ -24,7 +24,7 @@ export default async function Shop({
         ...(category ? { category: { slug: category } } : {}),
         ...(brand ? { brand: { slug: brand } } : {}),
         ...(sale ? { discountPercent: { gt: 0 } } : {}),
-        ...(q ? { name: { contains: q } } : {}),
+        ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
       },
       orderBy,
       include: { brand: true },

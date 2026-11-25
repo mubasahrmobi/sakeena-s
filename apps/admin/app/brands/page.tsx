@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 async function load(sp: SP) {
   const t = tableParams(sp, { sorts: ["name", "active"], defaultSort: "name", defaultDir: "asc" });
-  const where = t.q ? { name: { contains: t.q } } : {};
+  const where = t.q ? { name: { contains: t.q, mode: "insensitive" as const } } : {};
   const [rows, total] = await Promise.all([
     prisma.brand.findMany({ where, orderBy: { [t.sort]: t.dir }, include: { _count: { select: { products: true } } }, skip: t.skip, take: t.take }),
     prisma.brand.count({ where }),
