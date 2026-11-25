@@ -7,12 +7,15 @@ import { placeOrder } from "@/app/checkout/actions";
 
 type Instr = Record<string, { title: string; lines: string[] } | null>;
 
-export function CheckoutForm({ instructions }: { instructions: Instr }) {
+export function CheckoutForm({ instructions, codMax = 0 }: { instructions: Instr; codMax?: number }) {
   const { items, subtotal } = useCart();
   const [state, action, pending] = useActionState(placeOrder, undefined);
   const [method, setMethod] = useState<string>("COD");
   const shipping = shippingFor(subtotal);
-  const current = PAYMENT_METHODS.find((m) => m.id === method)!;
+  const codBlocked = codMax > 0 && subtotal + shipping > codMax; // big orders must be prepaid
+  const methods = PAYMENT_METHODS.filter((m) => !(m.id === "COD" && codBlocked));
+  const effective = methods.some((m) => m.id === method) ? method : methods[0].id;
+  const current = PAYMENT_METHODS.find((m) => m.id === effective)!;
 
   if (items.length === 0) {
     return (
@@ -41,17 +44,22 @@ export function CheckoutForm({ instructions }: { instructions: Instr }) {
         <section>
           <h2 className="mb-5 text-2xl">Payment</h2>
           <div className="space-y-3">
-            {PAYMENT_METHODS.map((m) => (
-              <label key={m.id} className={`flex cursor-pointer gap-3 border p-4 ${method === m.id ? "border-emerald bg-white" : "border-ink/15"}`}>
-                <input type="radio" name="paymentMethod" value={m.id} checked={method === m.id} onChange={() => setMethod(m.id)} className="mt-1 accent-emerald" />
+            {codBlocked && (
+              <p className="border border-gold/50 bg-gold/10 p-3 text-sm">
+                Cash on Delivery is available for orders up to {formatPKR(codMax)}. For this order please pay by JazzCash, Easypaisa or bank transfer.
+              </p>
+            )}
+            {methods.map((m) => (
+              <label key={m.id} className={`flex cursor-pointer gap-3 border p-4 ${effective === m.id ? "border-emerald bg-white" : "border-ink/15"}`}>
+                <input type="radio" name="paymentMethod" value={m.id} checked={effective === m.id} onChange={() => setMethod(m.id)} className="mt-1 accent-emerald" />
                 <span><span className="block font-medium">{m.label}</span><span className="text-sm text-ink/60">{m.hint}</span></span>
               </label>
             ))}
           </div>
-          {current.manual && instructions[method] && (
+          {current.manual && instructions[effective] && (
             <div className="mt-5 border border-gold/50 bg-gold/10 p-5 text-sm">
-              <p className="font-medium">{instructions[method]!.title}</p>
-              <ul className="mt-2 space-y-1">{instructions[method]!.lines.map((l) => <li key={l}>{l}</li>)}</ul>
+              <p className="font-medium">{instructions[effective]!.title}</p>
+              <ul className="mt-2 space-y-1">{instructions[effective]!.lines.map((l) => <li key={l}>{l}</li>)}</ul>
               <p className="mt-3">Send <b>{formatPKR(subtotal + shipping)}</b> and enter the transaction ID below. We verify every payment before dispatch.</p>
               <input name="paymentRef" required placeholder="Transaction / reference ID" className="input mt-3" />
             </div>

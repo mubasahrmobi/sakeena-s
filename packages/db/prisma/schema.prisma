@@ -46,6 +46,62 @@ model Product {
   createdAt       DateTime    @default(now())
   items           OrderItem[]
   movements       StockMovement[]
+  sizeStocks      ProductSize[]
+  reviews         Review[]
+}
+
+/// Stock per size. Product.stock always holds the total of these rows.
+model ProductSize {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String
+  stock     Int     @default(0)
+
+  @@unique([productId, size])
+}
+
+/// Customer reviews. Only shown on the site after an admin approves them.
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  rating    Int
+  comment   String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+/// Homepage hero slides, editable in the admin.
+model Banner {
+  id       String  @id @default(cuid())
+  title    String
+  subtitle String  @default("")
+  image    String
+  href     String  @default("/shop")
+  sort     Int     @default(0)
+  active   Boolean @default(true)
+}
+
+/// Staff accounts. The owner signs in with ADMIN_EMAIL / ADMIN_PASSWORD from the environment.
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("STAFF") // STAFF can manage orders/products/stock; owner-only: sales, staff, coupons, deleting
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+/// Used to slow down password guessing on the admin login.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }
 
 /// Every change to stock is logged here: orders, cancellations and manual edits.
@@ -53,6 +109,7 @@ model StockMovement {
   id        String   @id @default(cuid())
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String?
   change    Int // negative = stock out, positive = stock in
   after     Int // stock level after this change
   reason    String // ORDER, CANCEL, RESTORE, MANUAL
@@ -90,6 +147,10 @@ model Order {
   status        String      @default("PENDING")
   createdAt     DateTime    @default(now())
   trackingId    String?     @unique // unguessable id used in the customer's tracking link
+  codConfirmed  Boolean     @default(false) // customer confirmed a COD order by phone
+  courier       String? // e.g. TCS, Leopards, Trax, PostEx
+  courierTrackingNo String?
+  courierUrl    String? // optional link to the courier's tracking page
   items         OrderItem[]
   events        OrderEvent[]
 }

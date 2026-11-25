@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
+import { SearchBox } from "./SearchBox";
 
 const links = [
   { href: "/shop", label: "Shop" },
@@ -14,6 +16,7 @@ const links = [
 
 export function Header() {
   const { count } = useCart();
+  const wish = useWishlist();
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/90 backdrop-blur">
@@ -26,10 +29,17 @@ export function Header() {
           {links.map((l) => <Link key={l.href} href={l.href} className="hover:text-gold">{l.label}</Link>)}
         </nav>
         <Link href="/" aria-label="Sakeena's home"><Logo /></Link>
-        <Link href="/cart" className="relative text-sm uppercase tracking-widest hover:text-gold">
-          Bag
-          {count > 0 && <span className="ml-2 rounded-full bg-gold px-2 py-0.5 text-xs text-white">{count}</span>}
-        </Link>
+        <div className="flex items-center gap-5">
+          <SearchBox />
+          <Link href="/wishlist" aria-label="Wishlist" className="text-sm uppercase tracking-widest hover:text-gold">
+            <span aria-hidden>♡</span>
+            {wish.slugs.length > 0 && <span className="ml-1 text-xs text-gold">{wish.slugs.length}</span>}
+          </Link>
+          <Link href="/cart" className="relative text-sm uppercase tracking-widest hover:text-gold">
+            Bag
+            {count > 0 && <span className="ml-2 rounded-full bg-gold px-2 py-0.5 text-xs text-white">{count}</span>}
+          </Link>
+        </div>
       </div>
       {open && (
         <nav className="flex flex-col gap-4 border-t border-ink/10 px-5 py-4 text-sm uppercase tracking-widest md:hidden">

@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type S = { src: string; caption: string; sub: string };
+type S = { src: string; caption: string; sub: string; href?: string };
 
 /** Four-photo crossfade slider shown on the right of the hero. */
 export function HeroImageSlider({ slides }: { slides: S[] }) {
@@ -37,11 +38,12 @@ export function HeroImageSlider({ slides }: { slides: S[] }) {
           />
         ))}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        {slides[i].href && <Link href={slides[i].href!} aria-label={slides[i].caption} className="absolute inset-0 z-10" />}
 
-        <div className="absolute inset-x-0 bottom-0 p-6 text-cream">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 p-6 text-cream">
           <p className="text-[10px] uppercase tracking-[0.4em] text-gold-light">{slides[i].sub}</p>
           <p className="mt-1 font-display text-3xl">{slides[i].caption}</p>
-          <div className="mt-4 flex gap-2">
+          <div className="pointer-events-auto mt-4 flex gap-2">
             {slides.map((_, n) => (
               <button
                 key={n}

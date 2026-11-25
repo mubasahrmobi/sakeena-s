@@ -43,7 +43,7 @@ const faqs = [
 
 export default async function Home() {
   const visible = { active: true, OR: [{ brandId: null }, { brand: { active: true } }] };
-  const [latest, featured, sale, categories, brands] = await Promise.all([
+  const [latest, featured, sale, categories, brands, banners] = await Promise.all([
     prisma.product.findMany({ where: visible, include: { brand: true }, take: 10, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { ...visible, featured: true }, include: { brand: true }, take: 4, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { ...visible, discountPercent: { gt: 0 } }, include: { brand: true }, take: 10, orderBy: { discountPercent: "desc" } }),
@@ -52,8 +52,13 @@ export default async function Home() {
       where: { active: true, products: { some: { active: true } } }, orderBy: { name: "asc" },
       include: { _count: { select: { products: { where: { active: true } } } } },
     }),
+    prisma.banner.findMany({ where: { active: true }, orderBy: { sort: "asc" }, take: 6 }),
   ]);
   const maxDiscount = sale[0]?.discountPercent ?? 0;
+  // Banners added in the admin replace the default photos.
+  const heroSlides = banners.length
+    ? banners.map((b) => ({ src: b.image, caption: b.title, sub: b.subtitle, href: b.href }))
+    : HERO_SLIDES;
 
   return (
     <>
@@ -78,7 +83,7 @@ export default async function Home() {
               <li><span className="text-gold-light">✓</span> 7-day exchange</li>
             </ul>
           </div>
-          <HeroImageSlider slides={HERO_SLIDES} />
+          <HeroImageSlider slides={heroSlides} />
         </div>
       </section>
 

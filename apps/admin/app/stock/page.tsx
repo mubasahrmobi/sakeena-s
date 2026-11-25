@@ -18,7 +18,7 @@ async function load(sp: SP) {
   };
   const orderBy = t.sort === "category" ? { category: { name: t.dir } } : { [t.sort]: t.dir };
   const [products, total, all] = await Promise.all([
-    prisma.product.findMany({ where, orderBy, include: { category: true }, skip: t.skip, take: t.take }),
+    prisma.product.findMany({ where, orderBy, include: { category: true, sizeStocks: true }, skip: t.skip, take: t.take }),
     prisma.product.count({ where }),
     prisma.product.findMany({ select: { stock: true } }),
   ]);
@@ -56,12 +56,25 @@ export default async function Stock({ searchParams }: { searchParams: Promise<SP
     },
     { key: "cat", label: "Category", sortKey: "category", render: (p) => p.category.name },
     {
-      key: "stock", label: "In stock", sortKey: "stock",
+      key: "stock", label: "Stock by size", sortKey: "stock",
       render: (p) => (
-        <form action={setStock} className="flex items-center gap-2">
+        <form action={setStock} className="flex flex-wrap items-end gap-2">
           <input type="hidden" name="id" value={p.id} />
-          <input type="number" min={0} name="stock" defaultValue={p.stock} className="input !w-20 !py-1.5" />
-          <button className="text-xs uppercase tracking-widest text-emerald underline">Save</button>
+          {p.sizeStocks.length === 0 ? (
+            <input type="number" min={0} name="stock" defaultValue={p.stock} className="input !w-20 !py-1.5" />
+          ) : (
+            p.sizeStocks
+              .sort((a, b) => p.sizes.split(",").indexOf(a.size) - p.sizes.split(",").indexOf(b.size))
+              .map((s) => (
+                <label key={s.id} className="text-center text-[10px] uppercase text-ink/50">
+                  {s.size}
+                  <input type="number" min={0} name={`ss_${s.size}`} defaultValue={s.stock}
+                    className={`input !w-16 !px-2 !py-1.5 text-center ${s.stock === 0 ? "!border-red-300 bg-red-50" : s.stock <= 2 ? "!border-gold" : ""}`} />
+                </label>
+              ))
+          )}
+          <button className="pb-2 text-xs uppercase tracking-widest text-emerald underline">Save</button>
+          <span className="pb-2 text-xs text-ink/50">= {p.stock}</span>
         </form>
       ),
     },

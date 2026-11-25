@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { randomBytes } from "crypto";
-import { prisma, finalPrice, shippingFor, PAYMENT_METHODS } from "@sakeena/db";
+import { prisma, finalPrice, shippingFor, PAYMENT_METHODS, takeStock, logMovement } from "@sakeena/db";
 
 type Line = { productId: string; size: string; color: string; qty: number };
 
@@ -31,7 +31,6 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
     const p = products.find((x) => x.id === l.productId);
     const qty = Math.floor(Number(l.qty));
     if (!p || !(qty > 0)) return { error: "An item in your bag is no longer available." };
-    if (p.stock < qty) return { error: `Only ${p.stock} left of ${p.name}.` };
     const price = finalPrice(p.price, p.discountPercent);
     subtotal += price * qty;
     items.push({ productId: p.id, name: p.name, size: String(l.size), color: l.color ? String(l.color) : null, price, qty });
@@ -47,6 +46,11 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
   }
   const shipping = shippingFor(subtotal - discount);
   const total = subtotal - discount + shipping;
+  // Large Cash-on-Delivery orders can be limited (set COD_MAX_AMOUNT) to cut fake / returned parcels.
+  const codMax = Number(process.env.COD_MAX_AMOUNT || 0);
+  if (method === "COD" && codMax > 0 && total > codMax) {
+    return { error: `Cash on Delivery is available up to Rs. ${codMax.toLocaleString("en-PK")}. Please pay by JazzCash, Easypaisa or bank transfer.` };
+  }
   const orderNo = "SK-" + Math.floor(100000 + Math.random() * 900000);
   const trackingId = randomBytes(10).toString("hex"); // 20 random hex chars, impossible to guess
 
@@ -55,11 +59,7 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
   try {
     await prisma.$transaction(async (tx) => {
       for (const i of items) {
-        const ok = await tx.product.updateMany({
-          where: { id: i.productId, stock: { gte: i.qty } },
-          data: { stock: { decrement: i.qty } },
-        });
-        if (ok.count === 0) throw new Error(`Sorry, ${i.name} just sold out.`);
+        if (!(await takeStock(tx, i.productId, i.size, i.qty))) throw new Error(`Sorry, ${i.name} (size ${i.size}) just sold out.`);
       }
       await tx.order.create({
         data: {
@@ -73,12 +73,7 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
           events: { create: { status: "PENDING" } },
         },
       });
-      for (const i of items) {
-        const p = await tx.product.findUnique({ where: { id: i.productId } });
-        await tx.stockMovement.create({
-          data: { productId: i.productId, change: -i.qty, after: p?.stock ?? 0, reason: "ORDER", ref: orderNo },
-        });
-      }
+      for (const i of items) await logMovement(tx, { productId: i.productId, size: i.size, change: -i.qty, reason: "ORDER", ref: orderNo });
     });
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Could not place the order. Please try again." };

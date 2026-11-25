@@ -28,6 +28,7 @@ export default async function History({ searchParams }: { searchParams: Promise<
   const columns: Column<Row>[] = [
     { key: "date", label: "When", sortKey: "createdAt", render: (m) => m.createdAt.toLocaleString("en-PK") },
     { key: "p", label: "Product", render: (m) => <Link href={`/products/${m.productId}`} className="text-emerald underline">{m.product.name}</Link> },
+    { key: "sz", label: "Size", render: (m) => m.size ?? "—" },
     { key: "r", label: "Reason", sortKey: "reason", render: (m) => LABEL[m.reason] ?? m.reason },
     { key: "ref", label: "Order", render: (m) => m.ref ?? "—" },
     { key: "c", label: "Change", sortKey: "change", render: (m) => <span className={m.change < 0 ? "text-red-700" : "text-emerald"}>{m.change > 0 ? `+${m.change}` : m.change}</span> },

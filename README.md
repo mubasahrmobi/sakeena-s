@@ -38,11 +38,15 @@ Environment variables (Project → Settings → Environment Variables):
 
 **Both projects:** `DATABASE_URL` (Neon *pooled* string), `DIRECT_URL` (Neon *direct* string)
 
-**Storefront:** `NEXT_PUBLIC_WHATSAPP_NUMBER`, `JAZZCASH_TITLE`, `JAZZCASH_NUMBER`, `EASYPAISA_TITLE`, `EASYPAISA_NUMBER`, `BANK_NAME`, `BANK_TITLE`, `BANK_IBAN`
+**Storefront (required):** `NEXT_PUBLIC_WHATSAPP_NUMBER`, `JAZZCASH_TITLE`, `JAZZCASH_NUMBER`, `EASYPAISA_TITLE`, `EASYPAISA_NUMBER`, `BANK_NAME`, `BANK_TITLE`, `BANK_IBAN`, `NEXT_PUBLIC_SITE_URL` (your live address, used for Google/sitemap)
+
+**Storefront (optional):** `NEXT_PUBLIC_INSTAGRAM_URL`, `NEXT_PUBLIC_FACEBOOK_URL`, `NEXT_PUBLIC_TIKTOK_URL` (footer links), `NEXT_PUBLIC_GA_ID` (Google Analytics), `NEXT_PUBLIC_FB_PIXEL_ID` (Meta Pixel), `COD_MAX_AMOUNT` (orders above this must be prepaid; `0` = no limit)
 
 **Admin:** `ADMIN_EMAIL`, `ADMIN_PASSWORD` (strong!), `AUTH_SECRET` (long random string), `WEB_URL` (the live storefront address, used in WhatsApp tracking links)
 
-Create the database tables once, from your computer, pointing at the production database:
+Tip: in Vercel → Settings → Functions, set the **Function Region** to the one closest to your Neon database (e.g. Singapore, `sin1`) so checkout and stock updates stay fast.
+
+After pulling new code that changes `packages/db/prisma/schema.prisma`, update the database tables from your computer, pointing at the production database:
 
 ```bash
 npm run db:push

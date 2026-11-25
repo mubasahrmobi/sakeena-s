@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma, formatPKR } from "@sakeena/db";
 import { ClearCart } from "@/components/ClearCart";
+import { TrackPurchase } from "@/components/TrackPurchase";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Track your order", robots: { index: false, follow: false } };
@@ -32,6 +33,7 @@ export default async function Track({
   return (
     <div className="mx-auto max-w-2xl px-5 py-16">
       {placed && <ClearCart />}
+      {placed && <TrackPurchase value={o.total} orderNo={o.orderNo} />}
       <p className="text-center text-xs uppercase tracking-[0.5em] text-gold">{placed ? `Thank you, ${o.name.split(" ")[0]}` : "Order tracking"}</p>
       <h1 className="mt-3 text-center text-4xl md:text-5xl">{placed ? "Order received" : `Order ${o.orderNo}`}</h1>
       <p className="mt-3 text-center text-ink/70">
@@ -63,6 +65,21 @@ export default async function Track({
             );
           })}
         </ol>
+      )}
+
+      {!cancelled && o.paymentMethod === "COD" && o.status === "PENDING" && !o.codConfirmed && (
+        <p className="mt-10 border border-gold/50 bg-gold/10 p-4 text-center text-sm">
+          We may call or WhatsApp you to confirm this Cash on Delivery order. Please keep your phone handy.
+        </p>
+      )}
+      {!cancelled && (o.courier || o.courierTrackingNo) && (
+        <div className="mt-10 bg-white p-5 text-center text-sm">
+          <p className="text-xs uppercase tracking-[0.3em] text-gold">Courier</p>
+          <p className="mt-1 font-display text-xl">{o.courier ?? "Courier"}{o.courierTrackingNo && <> · {o.courierTrackingNo}</>}</p>
+          {o.courierUrl && /^https?:\/\//.test(o.courierUrl) && (
+            <a href={o.courierUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs uppercase tracking-widest text-emerald underline underline-offset-4">Track with courier</a>
+          )}
+        </div>
       )}
 
       <div className="mt-14 bg-white p-6 text-sm">

@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { randomBytes } from "crypto";
 import { prisma, formatPKR, ORDER_STATUSES, PAYMENT_STATUSES } from "@sakeena/db";
 import { Shell } from "@/components/Shell";
-import { updateOrder } from "@/lib/actions";
+import { updateOrder, saveOrderExtras, deleteOrder } from "@/lib/actions";
+import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +18,22 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
   }
   const trackUrl = `${(process.env.WEB_URL ?? "http://localhost:3000").replace(/\/$/, "")}/track/${o.trackingId}`;
   const waNumber = "92" + o.phone.replace(/\D/g, "").replace(/^(92|0)/, "");
-  const message = `Assalam-o-Alaikum ${o.name.split(" ")[0]}! Your Sakeena’s order ${o.orderNo} is ${o.status.toLowerCase()}. Track it anytime here: ${trackUrl}`;
+  const first = o.name.split(" ")[0];
+  const message = `Assalam-o-Alaikum ${first}! Your Sakeena’s order ${o.orderNo} is ${o.status.toLowerCase()}. Track it anytime here: ${trackUrl}`;
+  const confirmMsg = `Assalam-o-Alaikum ${first}! Thank you for ordering from Sakeena’s. Please confirm your order ${o.orderNo} (total ${formatPKR(o.total)}) to ${o.address}, ${o.city}. Reply YES to confirm. Track it here: ${trackUrl}`;
+  const shipMsg = `Assalam-o-Alaikum ${first}! Your Sakeena’s order ${o.orderNo} has been shipped${o.courier ? ` via ${o.courier}` : ""}${o.courierTrackingNo ? ` (tracking no. ${o.courierTrackingNo})` : ""}. Track it here: ${trackUrl}`;
+  const wa = (text: string) => `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
+  const session = await getSession();
   return (
-    <Shell title={`Order ${o.orderNo}`}>
+    <Shell
+      title={`Order ${o.orderNo}`}
+      action={
+        <span className="flex gap-3">
+          <Link href={`/orders/${o.id}/invoice`} target="_blank" className="btn-outline !px-4 !py-2">Invoice</Link>
+          <Link href={`/orders/${o.id}/invoice?slip=1`} target="_blank" className="btn-outline !px-4 !py-2">Packing slip</Link>
+        </span>
+      }
+    >
       <div className="grid max-w-5xl gap-8 md:grid-cols-2">
         <section className="space-y-2 bg-white p-6 text-sm">
           <h2 className="mb-2 text-xl">Customer</h2>
@@ -63,15 +78,42 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           <button className="btn-primary">Update order</button>
         </form>
 
+        <form action={saveOrderExtras} className="space-y-4 bg-white p-6 md:col-span-2">
+          <input type="hidden" name="id" value={o.id} />
+          <h2 className="text-xl">Courier &amp; confirmation</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div><label className="label">Courier</label><input name="courier" defaultValue={o.courier ?? ""} placeholder="TCS, Leopards, Trax, PostEx…" className="input" /></div>
+            <div><label className="label">Courier tracking no.</label><input name="courierTrackingNo" defaultValue={o.courierTrackingNo ?? ""} className="input" /></div>
+            <div><label className="label">Courier tracking link (optional)</label><input name="courierUrl" defaultValue={o.courierUrl ?? ""} placeholder="https://…" className="input" /></div>
+          </div>
+          {o.paymentMethod === "COD" && (
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="codConfirmed" defaultChecked={o.codConfirmed} className="accent-emerald" />
+              I phoned / messaged the customer and they confirmed this Cash on Delivery order
+            </label>
+          )}
+          <button className="btn-outline">Save courier details</button>
+          <p className="text-xs text-ink/50">The courier name and number appear on the customer’s tracking page.</p>
+        </form>
+
         <section className="space-y-3 bg-white p-6 md:col-span-2">
-          <h2 className="text-xl">Customer tracking link</h2>
-          <p className="text-sm text-ink/60">Private link for this order. When you change the status above, the customer sees it on this page.</p>
+          <h2 className="text-xl">Message the customer</h2>
+          <p className="text-sm text-ink/60">Private tracking link for this order. When you change the status above, the customer sees it there.</p>
           <input readOnly value={trackUrl} className="input" />
           <div className="flex flex-wrap gap-3">
-            <a href={`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`} target="_blank" className="btn-gold">Send on WhatsApp</a>
-            <a href={trackUrl} target="_blank" className="btn-outline">Open page</a>
+            <a href={wa(confirmMsg)} target="_blank" className="btn-gold">WhatsApp: confirm order</a>
+            <a href={wa(shipMsg)} target="_blank" className="btn-gold">WhatsApp: order shipped</a>
+            <a href={wa(message)} target="_blank" className="btn-outline">WhatsApp: current status</a>
+            <a href={trackUrl} target="_blank" className="btn-outline">Open tracking page</a>
           </div>
         </section>
+
+        {session?.role === "OWNER" && (
+          <form action={deleteOrder} className="md:col-span-2">
+            <input type="hidden" name="id" value={o.id} />
+            <button className="text-xs uppercase tracking-widest text-red-700 underline">Delete this order (for test orders — stock is returned)</button>
+          </form>
+        )}
       </div>
     </Shell>
   );

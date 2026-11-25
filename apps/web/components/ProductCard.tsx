@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { finalPrice, formatPKR, parseLines } from "@sakeena/db/utils";
 import { ProductImage } from "./ProductImage";
+import { WishlistButton } from "./WishlistButton";
 
 type P = { slug: string; name: string; price: number; discountPercent: number; images: string; stock: number; brand?: { name: string } | null };
 
@@ -15,6 +16,7 @@ export function ProductCard({ p }: { p: P }) {
             {p.discountPercent}% off
           </span>
         )}
+        <WishlistButton slug={p.slug} className="absolute right-3 top-3" />
         {p.stock <= 0 && (
           <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-2 text-center text-xs uppercase tracking-widest text-cream">Sold out</span>
         )}

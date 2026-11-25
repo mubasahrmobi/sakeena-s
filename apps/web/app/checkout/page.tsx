@@ -13,7 +13,7 @@ export default function Checkout() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-14">
       <h1 className="mb-10 text-4xl">Checkout</h1>
-      <CheckoutForm instructions={instructions} />
+      <CheckoutForm instructions={instructions} codMax={Number(process.env.COD_MAX_AMOUNT || 0)} />
     </div>
   );
 }
