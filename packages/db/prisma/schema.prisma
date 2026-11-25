@@ -74,3 +74,10 @@ model OrderItem {
   price     Int // final unit price
   qty       Int
 }
+
+model Image {
+  id        String   @id @default(cuid())
+  data      Bytes
+  mime      String
+  createdAt DateTime @default(now())
+}

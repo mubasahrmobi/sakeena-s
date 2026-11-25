@@ -1,4 +1,5 @@
 import { saveProduct } from "@/lib/actions";
+import { ImageManager } from "./ImageManager";
 
 type P = {
   id?: string; name?: string; description?: string; price?: number; discountPercent?: number;
@@ -23,9 +24,8 @@ export function ProductForm({ p = {}, categories }: { p?: P; categories: { id: s
       <div><label className="label">Sizes (comma separated)</label><input name="sizes" defaultValue={p.sizes ?? "S,M,L,XL"} className="input" /></div>
       <div><label className="label">Colours (comma separated)</label><input name="colors" defaultValue={p.colors} className="input" /></div>
       <div className="md:col-span-2">
-        <label className="label">Image URLs (one per line)</label>
-        <textarea name="images" rows={3} defaultValue={p.images} placeholder="https://…" className="input" />
-        <p className="mt-1 text-xs text-ink/50">Upload photos to Cloudinary / Imgbb / your CDN and paste the links. Without images a styled illustration is shown.</p>
+        <label className="label">Photos</label>
+        <ImageManager initial={(p.images ?? "").split("\n").map((s) => s.trim()).filter(Boolean)} />
       </div>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="featured" defaultChecked={p.featured} className="accent-emerald" /> Featured on homepage</label>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="active" defaultChecked={p.active ?? true} className="accent-emerald" /> Visible in shop</label>
