@@ -1,0 +1,12 @@
+{
+  "name": "sakeenas",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:web": "npm run dev -w @sakeena/web",
+    "dev:admin": "npm run dev -w @sakeena/admin",
+    "build": "npm run build -w @sakeena/web && npm run build -w @sakeena/admin",
+    "db:push": "npm run push -w @sakeena/db",
+    "db:seed": "npm run seed -w @sakeena/db"
+  }
+}

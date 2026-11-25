@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // switch to "postgresql" (Neon/Supabase) for production
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  name            String
+  slug            String      @unique
+  description     String
+  price           Int // PKR, before discount
+  discountPercent Int         @default(0)
+  images          String      @default("") // one URL per line
+  sizes           String      @default("S,M,L,XL") // comma separated
+  colors          String      @default("") // comma separated
+  stock           Int         @default(0)
+  featured        Boolean     @default(false)
+  active          Boolean     @default(true)
+  categoryId      String
+  category        Category    @relation(fields: [categoryId], references: [id])
+  createdAt       DateTime    @default(now())
+  items           OrderItem[]
+}
+
+model Coupon {
+  id        String  @id @default(cuid())
+  code      String  @unique
+  percent   Int
+  active    Boolean @default(true)
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNo       String      @unique
+  name          String
+  phone         String
+  email         String?
+  address       String
+  city          String
+  notes         String?
+  subtotal      Int
+  discount      Int         @default(0)
+  shipping      Int
+  total         Int
+  couponCode    String?
+  paymentMethod String
+  paymentStatus String      @default("PENDING")
+  paymentRef    String? // customer's transaction / reference id
+  status        String      @default("PENDING")
+  createdAt     DateTime    @default(now())
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  name      String
+  size      String
+  color     String?
+  price     Int // final unit price
+  qty       Int
+}
