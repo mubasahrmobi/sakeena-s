@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/lib/cart";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 const display = Playfair_Display({ subsets: ["latin"], variable: "--font-display" });
 const sans = Jost({ subsets: ["latin"], variable: "--font-sans" });
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <main>{children}</main>
           <Footer />
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>
