@@ -21,7 +21,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-cream/90 backdrop-blur">
       <div className="bg-emerald py-2 text-center text-[11px] uppercase tracking-[0.25em] text-cream">
-        Free delivery across Pakistan over Rs. 5,000 · Cash on Delivery available
+        Delivery across Pakistan · Flat Rs. 250 · Cash on Delivery available
       </div>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
         <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">☰</button>

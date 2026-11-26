@@ -15,7 +15,7 @@ const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "923028037807";
 const perks = [
   { icon: "✦", title: "Top brands, one store", text: "Your favourite labels, together in one place." },
   { icon: "◈", title: "Pay your way", text: "Cash on delivery, JazzCash, Easypaisa or bank transfer." },
-  { icon: "❖", title: "Delivered nationwide", text: "3–5 working days. Free over Rs. 5,000." },
+  { icon: "❖", title: "Delivered nationwide", text: "3–5 working days. Flat Rs. 250 delivery." },
   { icon: "❀", title: "Easy exchange", text: "7-day exchange if it isn’t the right fit." },
 ];
 
@@ -34,7 +34,7 @@ const steps = [
 ];
 
 const faqs = [
-  { q: "How long does delivery take?", a: "Orders reach most cities across Pakistan in 3–5 working days. Delivery is free on orders over Rs. 5,000; otherwise a flat Rs. 250 applies." },
+  { q: "How long does delivery take?", a: "Orders reach most cities across Pakistan in 3–5 working days. Delivery is a flat Rs. 250 on every order, anywhere in Pakistan." },
   { q: "Which payment methods do you accept?", a: "Cash on Delivery, JazzCash, Easypaisa and bank transfer. For wallet and bank payments, send the amount and enter your transaction ID at checkout — we verify it before dispatch." },
   { q: "Can I exchange an item?", a: "Yes. If the size or fit isn’t right, message us within 7 days of delivery and we’ll arrange an exchange." },
   { q: "How do I track my order?", a: "As soon as you order you get a private tracking link. You can also use Track Order in the menu with your order number and mobile number." },

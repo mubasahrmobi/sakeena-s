@@ -57,8 +57,8 @@ export function HeroImageSlider({ slides }: { slides: S[] }) {
       </div>
 
       <div className="absolute -left-4 top-16 hidden rounded-sm bg-cream px-4 py-3 text-ink shadow-xl md:block">
-        <p className="font-display text-lg leading-none text-emerald">Free delivery</p>
-        <p className="mt-1 text-[10px] uppercase tracking-widest text-ink/60">Orders over Rs. 5,000</p>
+        <p className="font-display text-lg leading-none text-emerald">Flat Rs. 250</p>
+        <p className="mt-1 text-[10px] uppercase tracking-widest text-ink/60">Delivery anywhere in Pakistan</p>
       </div>
     </div>
   );

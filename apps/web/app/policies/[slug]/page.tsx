@@ -10,7 +10,7 @@ const POLICIES: Record<string, Policy> = {
     intro: "We deliver across Pakistan.",
     sections: [
       { h: "How long it takes", p: ["Most orders reach you in 3–5 working days after dispatch. Remote areas can take a little longer."] },
-      { h: "Delivery charges", p: ["Delivery is free on orders over Rs. 5,000. Below that, a flat charge of Rs. 250 applies."] },
+      { h: "Delivery charges", p: ["A fixed delivery charge of Rs. 250 applies to every order, anywhere in Pakistan, however many items you buy."] },
       { h: "Tracking", p: ["As soon as you order you receive a private tracking link, and you can always use Track Order in the menu with your order number and mobile number. We add the courier name and tracking number once your parcel ships."] },
       { h: "Before dispatch", p: ["We may call or message you on WhatsApp to confirm your address, especially for Cash on Delivery orders. Please keep your phone reachable."] },
     ],

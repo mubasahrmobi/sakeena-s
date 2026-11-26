@@ -1,5 +1,5 @@
+/** Fixed delivery charge (PKR) added to every order. */
 export const SHIPPING_FLAT = 250;
-export const FREE_SHIPPING_OVER = 5000;
 
 export function finalPrice(price: number, discountPercent: number) {
   return Math.round((price * (100 - discountPercent)) / 100);
@@ -14,7 +14,7 @@ export function parseLines(s?: string | null) {
   return (s ?? "").split("\n").map((x) => x.trim()).filter(Boolean);
 }
 export function shippingFor(subtotal: number) {
-  return subtotal >= FREE_SHIPPING_OVER || subtotal === 0 ? 0 : SHIPPING_FLAT;
+  return subtotal > 0 ? SHIPPING_FLAT : 0;
 }
 
 export const PAYMENT_METHODS = [
