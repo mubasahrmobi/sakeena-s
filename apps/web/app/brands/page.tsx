@@ -1,7 +1,7 @@
 import { prisma } from "@sakeena/db";
 import { BrandTile } from "@/components/BrandTile";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // served from cache; refreshed at most once a minute (or instantly by the admin)
 export const metadata = { title: "All Brands" };
 
 export default async function Brands() {

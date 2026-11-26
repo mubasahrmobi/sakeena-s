@@ -5,6 +5,7 @@ import {
   prisma, parseList, ORDER_STATUSES, PAYMENT_STATUSES, takeStock, returnStock, logMovement,
 } from "@sakeena/db";
 import { getSession, hashPassword } from "./auth";
+import { refreshStorefront } from "./revalidate";
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 async function guard(ownerOnly = false) {
@@ -63,6 +64,7 @@ export async function saveProduct(form: FormData) {
     }
     await tx.productSize.deleteMany({ where: { productId, size: { notIn: sizes } } });
   });
+  await refreshStorefront();
   revalidatePath("/products");
   revalidatePath("/stock");
   redirect("/products");
@@ -75,6 +77,7 @@ export async function deleteProduct(form: FormData) {
   // Products that appear in past orders are hidden instead of deleted to keep order history intact.
   if (used > 0) await prisma.product.update({ where: { id }, data: { active: false } });
   else await prisma.product.delete({ where: { id } });
+  await refreshStorefront();
   revalidatePath("/products");
   redirect("/products");
 }
@@ -102,6 +105,7 @@ export async function setStock(form: FormData) {
       await logMovement(tx, { productId: id, size: row.size, change: next - row.stock, reason: "MANUAL" });
     }
   });
+  await refreshStorefront();
   revalidatePath("/stock");
   revalidatePath("/products");
 }
@@ -126,6 +130,7 @@ export async function saveBrand(form: FormData) {
     if (await prisma.brand.findUnique({ where: { slug } })) slug += "-" + Math.floor(Math.random() * 900 + 100);
     await prisma.brand.create({ data: { ...data, slug } });
   }
+  await refreshStorefront();
   revalidatePath("/brands");
   redirect("/brands");
 }
@@ -136,6 +141,7 @@ export async function deleteBrand(form: FormData) {
   // A brand that still has products is hidden instead of deleted.
   if ((await prisma.product.count({ where: { brandId: id } })) > 0) await prisma.brand.update({ where: { id }, data: { active: false } });
   else await prisma.brand.delete({ where: { id } });
+  await refreshStorefront();
   revalidatePath("/brands");
   redirect("/brands");
 }
@@ -144,12 +150,14 @@ export async function addCategory(form: FormData) {
   await guard();
   const name = str(form, "name");
   if (name) await prisma.category.upsert({ where: { slug: slugify(name) }, update: {}, create: { name, slug: slugify(name) } });
+  await refreshStorefront();
   revalidatePath("/categories");
 }
 export async function deleteCategory(form: FormData) {
   await guard();
   const id = str(form, "id");
   if ((await prisma.product.count({ where: { categoryId: id } })) === 0) await prisma.category.delete({ where: { id } });
+  await refreshStorefront();
   revalidatePath("/categories");
 }
 
@@ -210,6 +218,7 @@ export async function updateOrder(form: FormData) {
       });
     }
   });
+  await refreshStorefront();
   revalidatePath(`/orders/${id}`);
   revalidatePath("/orders");
   revalidatePath("/sales");
@@ -247,6 +256,7 @@ export async function deleteOrder(form: FormData) {
     }
     await tx.order.delete({ where: { id } });
   });
+  await refreshStorefront();
   revalidatePath("/orders");
   revalidatePath("/sales");
   revalidatePath("/stock");
@@ -266,12 +276,14 @@ export async function saveBanner(form: FormData) {
   };
   if (id) await prisma.banner.update({ where: { id }, data });
   else await prisma.banner.create({ data });
+  await refreshStorefront();
   revalidatePath("/banners");
   redirect("/banners");
 }
 export async function deleteBanner(form: FormData) {
   await guard();
   await prisma.banner.delete({ where: { id: str(form, "id") } });
+  await refreshStorefront();
   revalidatePath("/banners");
   redirect("/banners");
 }
@@ -283,6 +295,7 @@ export async function setReview(form: FormData) {
   const id = str(form, "id");
   if (str(form, "do") === "delete") await prisma.review.delete({ where: { id } });
   else await prisma.review.update({ where: { id }, data: { approved: str(form, "do") === "approve" } });
+  await refreshStorefront();
   revalidatePath("/reviews");
 }
 

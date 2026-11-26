@@ -7,12 +7,19 @@ import { AddToCart } from "@/components/AddToCart";
 import { WishlistButton } from "@/components/WishlistButton";
 import { ReviewForm } from "@/components/ReviewForm";
 import { abs, SITE_URL } from "@/lib/site";
+import { getProduct } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // served from cache; refreshed at most once a minute (or instantly by the admin)
+// Existing products are built ahead of time so even the first visitor gets a fast page.
+// Products added later are built the first time someone opens them, then cached.
+export async function generateStaticParams() {
+  const rows = await prisma.product.findMany({ where: { active: true }, select: { slug: true }, take: 300 });
+  return rows.map((r) => ({ slug: r.slug }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const p = await prisma.product.findUnique({ where: { slug }, include: { brand: true } });
+  const p = await getProduct(slug);
   if (!p) return { title: "Product" };
   const img = parseLines(p.images)[0];
   const desc = p.description.slice(0, 155);
@@ -26,10 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const p = await prisma.product.findUnique({
-    where: { slug },
-    include: { category: true, brand: true, sizeStocks: true, reviews: { where: { approved: true }, orderBy: { createdAt: "desc" } } },
-  });
+  const p = await getProduct(slug);
   if (!p || !p.active) notFound();
 
   const related = await prisma.product.findMany({

@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { randomBytes } from "crypto";
 import { prisma, finalPrice, shippingFor, PAYMENT_METHODS, takeStock, logMovement } from "@sakeena/db";
 
@@ -79,5 +80,8 @@ export async function placeOrder(_: CheckoutState, form: FormData): Promise<Chec
     return { error: e instanceof Error ? e.message : "Could not place the order. Please try again." };
   }
 
+  // stock just changed, so refresh the cached product pages
+  revalidateTag("catalog");
+  revalidatePath("/", "layout");
   redirect(`/track/${trackingId}?placed=1`);
 }

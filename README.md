@@ -44,7 +44,9 @@ Environment variables (Project → Settings → Environment Variables):
 
 **Admin:** `ADMIN_EMAIL`, `ADMIN_PASSWORD` (strong!), `AUTH_SECRET` (long random string), `WEB_URL` (the live storefront address, used in WhatsApp tracking links)
 
-Tip: in Vercel → Settings → Functions, set the **Function Region** to the one closest to your Neon database (e.g. Singapore, `sin1`) so checkout and stock updates stay fast.
+**Speed:** both apps ship a `vercel.json` that runs the servers in Singapore (`sin1`), next to the Neon database (also `ap-southeast-1`). If you create the database in another region, change `regions` in `apps/web/vercel.json` and `apps/admin/vercel.json` to match.
+
+The storefront caches its public pages (home, brands, products, shop results) for about a minute. So changes show up instantly, add the **same** `REVALIDATE_SECRET` (any long random string) to **both** Vercel projects. The admin then tells the storefront to refresh as soon as you save a product, stock level, brand, banner or review.
 
 After pulling new code that changes `packages/db/prisma/schema.prisma`, update the database tables from your computer, pointing at the production database:
 

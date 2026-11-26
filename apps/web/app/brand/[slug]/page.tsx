@@ -1,41 +1,43 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@sakeena/db";
 import { ProductCard } from "@/components/ProductCard";
+import { getBrand, getBrandCategories, queryProducts } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
+const PAGE_SIZE = 24;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const b = await prisma.brand.findUnique({ where: { slug } });
+  const b = await getBrand(slug); // same query the page uses — runs once
   return { title: b?.name ?? "Brand" };
 }
 
 export default async function BrandPage({
   params, searchParams,
-}: { params: Promise<{ slug: string }>; searchParams: Promise<{ category?: string; sale?: string; sort?: string }> }) {
+}: { params: Promise<{ slug: string }>; searchParams: Promise<{ category?: string; sale?: string; sort?: string; page?: string }> }) {
   const { slug } = await params;
-  const { category, sale, sort } = await searchParams;
-  const brand = await prisma.brand.findUnique({ where: { slug } });
+  const { category, sale, sort, page: pageParam } = await searchParams;
+  const brand = await getBrand(slug);
   if (!brand || !brand.active) notFound();
+  const page = Math.max(1, Math.floor(Number(pageParam)) || 1);
 
   const orderBy =
     sort === "price-asc" ? { price: "asc" as const }
     : sort === "price-desc" ? { price: "desc" as const }
     : { createdAt: "desc" as const };
 
-  const [products, categories] = await Promise.all([
-    prisma.product.findMany({
+  const [{ items: products, total }, categories] = await Promise.all([
+    queryProducts({
       where: {
         active: true, brandId: brand.id,
         ...(category ? { category: { slug: category } } : {}),
         ...(sale ? { discountPercent: { gt: 0 } } : {}),
       },
-      orderBy, include: { brand: true },
+      orderBy, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE,
     }),
     // only categories this brand actually has products in
-    prisma.category.findMany({ where: { products: { some: { brandId: brand.id, active: true } } } }),
+    getBrandCategories(brand.id),
   ]);
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const qs = (o: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
@@ -76,6 +78,13 @@ export default async function BrandPage({
         ) : (
           <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-4">
             {products.map((p) => <ProductCard key={p.id} p={p} />)}
+          </div>
+        )}
+        {pages > 1 && (
+          <div className="mt-14 flex items-center justify-center gap-2 text-sm">
+            {page > 1 && <Link href={qs({ page: String(page - 1) })} className="border border-ink/20 px-4 py-2">‹ Previous</Link>}
+            <span className="px-3 text-ink/60">Page {page} of {pages}</span>
+            {page < pages && <Link href={qs({ page: String(page + 1) })} className="border border-ink/20 px-4 py-2">Next ›</Link>}
           </div>
         )}
       </div>

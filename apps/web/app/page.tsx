@@ -9,7 +9,7 @@ import { Tilt } from "@/components/Tilt";
 import { HeroImageSlider } from "@/components/HeroImageSlider";
 import { HERO_SLIDES, SECTION_IMAGES } from "@/lib/images";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // served from cache; refreshed at most once a minute (or instantly by the admin)
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "923028037807";
 

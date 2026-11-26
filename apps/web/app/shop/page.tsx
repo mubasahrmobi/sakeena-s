@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { prisma, parseList } from "@sakeena/db";
 import { ProductCard } from "@/components/ProductCard";
+import { getActiveBrands, getCategories, getFacets, queryProducts } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Shop" };
 
 const PAGE_SIZE = 24;
@@ -33,15 +32,15 @@ export default async function Shop({ searchParams }: { searchParams: Promise<SP>
     ...(min || max ? { price: { ...(min ? { gte: min } : {}), ...(max ? { lte: max } : {}) } } : {}),
   };
 
-  const [products, total, categories, brands, facets] = await Promise.all([
-    prisma.product.findMany({ where, orderBy, include: { brand: true }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE }),
-    prisma.product.count({ where }),
-    prisma.category.findMany(),
-    prisma.brand.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
-    prisma.product.findMany({ where: { active: true }, select: { sizes: true, colors: true } }),
+  // categories, brands and filter options come from the cache; only the product list itself is fetched fresh
+  const [{ items: products, total }, categories, brands, facets] = await Promise.all([
+    queryProducts({ where, orderBy, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE }),
+    getCategories(),
+    getActiveBrands(),
+    getFacets(),
   ]);
-  const sizeOptions = Array.from(new Set(facets.flatMap((f) => parseList(f.sizes))));
-  const colorOptions = Array.from(new Set(facets.flatMap((f) => parseList(f.colors).map((c) => c.toLowerCase())))).sort();
+  const sizeOptions = facets.sizes;
+  const colorOptions = facets.colors;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const filtersOn = !!(brand || size || color || min || max || stock || q);
 
