@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="grid gap-12 md:grid-cols-2">
         <div className="grid gap-4">
           {(images.length ? images : [undefined]).map((src, i) => (
-            <ProductImage key={i} src={src} name={p.name} className="aspect-[3/4]" />
+            <ProductImage key={i} src={src} name={p.name} natural className={src ? "" : "aspect-[3/4]"} />
           ))}
         </div>
         <div className="md:sticky md:top-32 md:self-start">
