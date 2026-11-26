@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { Tilt } from "./Tilt";
 import { useEffect, useState } from "react";
 
 type S = { src: string; caption: string; sub: string; href?: string };
@@ -17,15 +18,17 @@ export function HeroImageSlider({ slides }: { slides: S[] }) {
   }, [paused, slides.length]);
 
   return (
+    <Tilt max={9} scale={1.01} glare={false} className="mx-auto w-full max-w-[420px] md:max-w-[460px]">
     <div
-      className="relative mx-auto w-full max-w-[420px] md:max-w-[460px]"
+      className="relative [transform-style:preserve-3d]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* gold offset frame */}
-      <div className="absolute -inset-3 translate-x-3 translate-y-3 rounded-t-[220px] border border-gold/60" />
+      {/* depth layers: two gold frames sit behind the photo, the delivery tag floats in front */}
+      <div className="absolute -inset-3 rounded-t-[220px] border border-gold/60" style={{ transform: "translate3d(14px,14px,-50px)" }} />
+      <div className="absolute -inset-3 rounded-t-[220px] border border-gold/30" style={{ transform: "translate3d(28px,28px,-100px)" }} />
 
-      <div className="relative aspect-[4/5] overflow-hidden rounded-t-[220px] bg-emerald-dark shadow-2xl">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-t-[220px] bg-emerald-dark shadow-[0_40px_60px_-20px_rgba(0,0,0,0.55)]">
         {slides.map((s, n) => (
           <Image
             key={s.src}
@@ -56,10 +59,11 @@ export function HeroImageSlider({ slides }: { slides: S[] }) {
         </div>
       </div>
 
-      <div className="absolute -left-4 top-16 hidden rounded-sm bg-cream px-4 py-3 text-ink shadow-xl md:block">
+      <div className="absolute -left-4 top-16 hidden rounded-sm bg-cream px-4 py-3 text-ink shadow-2xl md:block" style={{ transform: "translateZ(90px)" }}>
         <p className="font-display text-lg leading-none text-emerald">Flat Rs. 250</p>
         <p className="mt-1 text-[10px] uppercase tracking-widest text-ink/60">Delivery anywhere in Pakistan</p>
       </div>
     </div>
+    </Tilt>
   );
 }

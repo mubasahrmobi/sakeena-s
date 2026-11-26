@@ -9,8 +9,9 @@
 }
 @layer components {
   .btn { @apply inline-flex items-center justify-center gap-2 px-7 py-3 text-sm tracking-[0.15em] uppercase transition disabled:opacity-50; }
-  .btn-primary { @apply btn bg-emerald text-cream hover:bg-emerald-light; }
-  .btn-gold { @apply btn bg-gold text-white hover:bg-gold-light; }
+  /* Raised "3D" buttons: a solid edge underneath that presses in when clicked */
+  .btn-primary { @apply btn bg-emerald text-cream shadow-[0_5px_0_#0A2B24] hover:-translate-y-0.5 hover:bg-emerald-light hover:shadow-[0_7px_0_#0A2B24] active:translate-y-[4px] active:shadow-[0_1px_0_#0A2B24] disabled:translate-y-0; }
+  .btn-gold { @apply btn bg-gold text-white shadow-[0_5px_0_#8A6B2F] hover:-translate-y-0.5 hover:bg-gold-light hover:shadow-[0_7px_0_#8A6B2F] active:translate-y-[4px] active:shadow-[0_1px_0_#8A6B2F]; }
   .btn-outline { @apply btn border border-emerald text-emerald hover:bg-emerald hover:text-cream; }
   .input { @apply w-full border border-ink/20 bg-white px-4 py-3 text-sm outline-none focus:border-emerald; }
   .label { @apply mb-1 block text-xs uppercase tracking-widest text-ink/60; }
@@ -26,4 +27,38 @@
   }
 }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .animate-marquee { animation: none; } }
+
+/* ---------- 3D effects ---------- */
+@layer utilities {
+  .preserve-3d { transform-style: preserve-3d; }
+  .persp { perspective: 1100px; }
+
+  /* floating tilted diamonds used as depth decoration */
+  .float-3d { animation: float3d 9s ease-in-out infinite; transform-style: preserve-3d; }
+  .float-3d-slow { animation: float3d 14s ease-in-out infinite reverse; transform-style: preserve-3d; }
+
+  /* round "coin" badges that spin on hover */
+  .coin { transition: transform 0.9s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+  .coin-host:hover .coin { transform: rotateY(360deg); }
+
+  /* soft layered shadow that grows as a card lifts */
+  .lift { transition: box-shadow 0.4s ease, transform 0.4s ease; box-shadow: 0 2px 4px rgba(28,25,23,.08), 0 10px 20px -10px rgba(28,25,23,.25); }
+  .lift:hover { box-shadow: 0 6px 10px rgba(28,25,23,.1), 0 30px 40px -18px rgba(15,61,51,.45); }
+
+  /* sections rise into view with a little depth (browsers without scroll timelines just show them) */
+  @supports (animation-timeline: view()) {
+    .reveal { animation: reveal-in linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+  }
+}
+@keyframes reveal-in {
+  from { opacity: 0; transform: perspective(1200px) translate3d(0, 48px, -80px) rotateX(10deg); }
+  to   { opacity: 1; transform: perspective(1200px) translate3d(0, 0, 0) rotateX(0); }
+}
+@keyframes float3d {
+  0%, 100% { transform: translate3d(0, 0, 0) rotateX(58deg) rotateZ(45deg); }
+  50%      { transform: translate3d(0, -22px, 40px) rotateX(58deg) rotateZ(58deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee, .float-3d, .float-3d-slow, .reveal { animation: none !important; }
+  .coin-host:hover .coin { transform: none; }
+}

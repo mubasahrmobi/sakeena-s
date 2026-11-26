@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { BrandTile } from "@/components/BrandTile";
 import { BrandMarquee } from "@/components/BrandMarquee";
 import { Carousel } from "@/components/Carousel";
+import { Tilt } from "@/components/Tilt";
 import { HeroImageSlider } from "@/components/HeroImageSlider";
 import { HERO_SLIDES, SECTION_IMAGES } from "@/lib/images";
 
@@ -64,7 +65,14 @@ export default async function Home() {
     <>
       {/* HERO */}
       <section className="pattern-star relative overflow-hidden bg-emerald text-cream">
-        <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
+        {/* floating 3D shapes behind the hero for depth */}
+        <div aria-hidden className="persp pointer-events-none absolute inset-0 overflow-hidden">
+          <span className="float-3d absolute -left-12 top-24 h-44 w-44 border border-gold/30" />
+          <span className="float-3d-slow absolute bottom-12 left-[38%] h-24 w-24 border border-gold/40 bg-gold/5" />
+          <span className="float-3d absolute right-8 top-8 h-28 w-28 border border-cream/20" />
+          <span className="float-3d-slow absolute -bottom-10 right-[22%] h-36 w-36 border border-gold/20" />
+        </div>
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
           <div>
             <p className="mb-6 text-xs uppercase tracking-[0.5em] text-gold-light">Sakeena’s · Tranquil Elegance</p>
             <h1 className="text-5xl leading-[1.08] md:text-7xl">
@@ -93,8 +101,8 @@ export default async function Home() {
       <section className="border-b border-ink/10 bg-cream-dark">
         <div className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:grid-cols-2 md:grid-cols-4">
           {perks.map((p) => (
-            <div key={p.title} className="flex items-start gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold text-gold">{p.icon}</span>
+            <div key={p.title} className="coin-host flex items-start gap-4">
+              <span className="coin flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold bg-cream text-gold shadow-md">{p.icon}</span>
               <div>
                 <p className="font-display text-lg leading-tight">{p.title}</p>
                 <p className="mt-1 text-sm text-ink/60">{p.text}</p>
@@ -105,7 +113,7 @@ export default async function Home() {
       </section>
 
       {brands.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 pt-20">
+        <section className="reveal mx-auto max-w-7xl px-5 pt-20">
           <div className="mb-10 text-center">
             <p className="text-xs uppercase tracking-[0.5em] text-gold">Shop by label</p>
             <h2 className="mt-2 text-4xl md:text-5xl">Top Brands</h2>
@@ -118,7 +126,7 @@ export default async function Home() {
       )}
 
       {latest.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 pt-24">
+        <section className="reveal mx-auto max-w-7xl px-5 pt-24">
           <div className="mb-10 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.5em] text-gold">Just in</p>
@@ -131,13 +139,17 @@ export default async function Home() {
       )}
 
       {/* NEW SECTION 1 — CRAFT */}
-      <section className="mx-auto mt-28 grid max-w-7xl items-center gap-12 px-5 md:grid-cols-2">
-        <div className="relative">
-          <div className="absolute -bottom-4 -left-4 h-full w-full border border-gold/60" />
-          <div className="relative aspect-[4/5] overflow-hidden">
+      <section className="reveal mx-auto mt-28 grid max-w-7xl items-center gap-12 px-5 md:grid-cols-2">
+        <Tilt max={7} scale={1.02} glare={false} className="mx-4 md:mx-0">
+          {/* frame sits behind the photo, a gold plate floats in front */}
+          <div className="absolute inset-0 border border-gold/60" style={{ transform: "translate3d(-18px,18px,-60px)" }} />
+          <div className="relative aspect-[4/5] overflow-hidden shadow-[0_40px_60px_-25px_rgba(0,0,0,0.5)]">
             <Image src={SECTION_IMAGES.embroidery} alt="Close-up of colourful embroidery" fill sizes="(max-width:768px) 90vw, 560px" className="object-cover" />
           </div>
-        </div>
+          <div className="absolute -right-3 bottom-8 bg-gold px-5 py-3 text-xs uppercase tracking-[0.3em] text-white shadow-2xl" style={{ transform: "translateZ(80px)" }}>
+            Made with care
+          </div>
+        </Tilt>
         <div>
           <p className="text-xs uppercase tracking-[0.5em] text-gold">The Sakeena’s standard</p>
           <h2 className="mt-3 text-4xl leading-tight md:text-5xl">Beautiful on the outside, <em className="text-emerald">careful all the way through.</em></h2>
@@ -161,8 +173,8 @@ export default async function Home() {
       </section>
 
       {maxDiscount > 0 && (
-        <section className="mx-auto mt-28 max-w-7xl px-5">
-          <div className="pattern-star relative overflow-hidden bg-emerald px-8 py-14 text-center text-cream md:py-20">
+        <section className="reveal mx-auto mt-28 max-w-7xl px-5">
+          <div className="pattern-star relative overflow-hidden bg-emerald px-8 py-14 text-center text-cream shadow-[0_40px_60px_-30px_rgba(15,61,51,0.7)] md:py-20">
             <p className="text-xs uppercase tracking-[0.5em] text-gold-light">Sale is on</p>
             <h2 className="mt-3 text-4xl md:text-6xl">Up to <span className="italic text-gold-light">{maxDiscount}% off</span> top brands</h2>
             <Link href="/shop?sale=1" className="btn-gold mt-8">Shop the sale</Link>
@@ -171,41 +183,46 @@ export default async function Home() {
       )}
 
       {/* NEW SECTION 2 — THE EDIT (editorial grid) */}
-      <section className="mx-auto mt-28 max-w-7xl px-5">
+      <section className="reveal mx-auto mt-28 max-w-7xl px-5">
         <div className="mb-12 text-center">
           <p className="text-xs uppercase tracking-[0.5em] text-gold">The Edit</p>
           <h2 className="mt-2 text-4xl md:text-5xl">What we love this season</h2>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
           {edit.map((e) => (
-            <Link key={e.title} href="/shop" className={`group relative overflow-hidden ${e.tall ? "aspect-[3/4] md:aspect-[3/4.4]" : "aspect-[3/4]"} md:[&:nth-child(odd)]:mt-0 md:[&:nth-child(even)]:mt-10`}>
-              <Image src={e.img} alt={e.title} fill sizes="(max-width:768px) 50vw, 25vw" className="object-cover transition duration-700 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-5 text-cream">
-                <p className="font-display text-xl leading-tight md:text-2xl">{e.title}</p>
-                <p className="mt-1 hidden text-xs text-cream/80 md:block">{e.text}</p>
-                <p className="mt-3 text-[11px] uppercase tracking-[0.3em] text-gold-light">Shop now →</p>
-              </div>
+            <Link key={e.title} href="/shop" className="group block md:[&:nth-child(even)]:mt-10">
+              <Tilt max={10} scale={1.04} className={`lift ${e.tall ? "aspect-[3/4] md:aspect-[3/4.4]" : "aspect-[3/4]"}`}>
+                <div className="absolute inset-0 overflow-hidden">
+                  <Image src={e.img} alt={e.title} fill sizes="(max-width:768px) 50vw, 25vw" className="object-cover transition duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 p-5 text-cream" style={{ transform: "translateZ(45px)" }}>
+                  <p className="font-display text-xl leading-tight drop-shadow md:text-2xl">{e.title}</p>
+                  <p className="mt-1 hidden text-xs text-cream/80 md:block">{e.text}</p>
+                  <p className="mt-3 text-[11px] uppercase tracking-[0.3em] text-gold-light">Shop now →</p>
+                </div>
+              </Tilt>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 pt-28">
+      <section className="reveal mx-auto max-w-7xl px-5 pt-28">
         <h2 className="text-center text-4xl md:text-5xl">Shop by category</h2>
-        <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-4">
           {categories.map((c, i) => (
-            <Link key={c.id} href={`/shop?category=${c.slug}`}
-              className={`group relative flex aspect-[4/3] items-center justify-center overflow-hidden p-4 text-center transition ${i % 2 ? "bg-cream-dark" : "bg-emerald text-cream"}`}>
-              <span className="pattern-star absolute inset-0 opacity-70 transition group-hover:scale-110" />
-              <span className="relative font-display text-2xl">{c.name}</span>
+            <Link key={c.id} href={`/shop?category=${c.slug}`} className="group block">
+              <Tilt max={12} scale={1.05} className={`lift flex aspect-[4/3] items-center justify-center p-4 text-center ${i % 2 ? "bg-cream-dark" : "bg-emerald text-cream"}`}>
+                <span className="pattern-star absolute inset-0 overflow-hidden opacity-70 transition duration-700 group-hover:scale-110" />
+                <span className="relative font-display text-2xl" style={{ transform: "translateZ(50px)" }}>{c.name}</span>
+              </Tilt>
             </Link>
           ))}
         </div>
       </section>
 
       {featured.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 pt-28">
+        <section className="reveal mx-auto max-w-7xl px-5 pt-28">
           <div className="mb-10 text-center">
             <p className="text-xs uppercase tracking-[0.5em] text-gold">Hand-picked</p>
             <h2 className="mt-2 text-4xl md:text-5xl">Featured</h2>
@@ -217,7 +234,7 @@ export default async function Home() {
       )}
 
       {sale.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 pt-28">
+        <section className="reveal mx-auto max-w-7xl px-5 pt-28">
           <div className="mb-10 flex items-end justify-between">
             <h2 className="text-4xl md:text-5xl">On Sale</h2>
             <Link href="/shop?sale=1" className="text-sm uppercase tracking-widest text-emerald underline underline-offset-8">All offers</Link>
@@ -227,7 +244,7 @@ export default async function Home() {
       )}
 
       {/* NEW SECTION 3 — HOW IT WORKS */}
-      <section className="pattern-star mt-28 bg-emerald-dark py-24 text-cream">
+      <section className="reveal pattern-star mt-28 bg-emerald-dark py-24 text-cream">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-14 text-center">
             <p className="text-xs uppercase tracking-[0.5em] text-gold-light">Simple &amp; safe</p>
@@ -236,8 +253,8 @@ export default async function Home() {
           <ol className="relative grid gap-10 md:grid-cols-4">
             <span className="absolute left-[12.5%] right-[12.5%] top-7 hidden h-px bg-gold/40 md:block" />
             {steps.map((s) => (
-              <li key={s.n} className="relative text-center">
-                <span className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-gold bg-emerald-dark font-display text-xl text-gold-light">{s.n}</span>
+              <li key={s.n} className="coin-host relative text-center">
+                <span className="coin relative mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-gold bg-emerald-dark font-display text-xl text-gold-light shadow-[0_10px_20px_-6px_rgba(0,0,0,0.6)]">{s.n}</span>
                 <h3 className="mt-5 text-xl">{s.title}</h3>
                 <p className="mx-auto mt-2 max-w-[16rem] text-sm text-cream/70">{s.text}</p>
               </li>
@@ -252,7 +269,7 @@ export default async function Home() {
       </section>
 
       {/* NEW SECTION 4 — FAQ + CONTACT */}
-      <section className="mx-auto grid max-w-7xl gap-12 px-5 py-28 md:grid-cols-[1fr_1.4fr]">
+      <section className="reveal mx-auto grid max-w-7xl gap-12 px-5 py-28 md:grid-cols-[1fr_1.4fr]">
         <div>
           <p className="text-xs uppercase tracking-[0.5em] text-gold">Good to know</p>
           <h2 className="mt-3 text-4xl leading-tight md:text-5xl">Questions, answered.</h2>
@@ -264,11 +281,11 @@ export default async function Home() {
           >
             Chat on WhatsApp
           </a>
-          <div className="mt-10 overflow-hidden">
-            <div className="relative aspect-[16/10]">
+          <Tilt max={8} scale={1.03} className="lift mt-10 aspect-[16/10]">
+            <div className="absolute inset-0 overflow-hidden">
               <Image src={SECTION_IMAGES.boutique} alt="Clothes on a boutique rack" fill sizes="(max-width:768px) 90vw, 420px" className="object-cover" />
             </div>
-          </div>
+          </Tilt>
         </div>
         <div className="divide-y divide-ink/15 border-y border-ink/15">
           {faqs.map((f) => (

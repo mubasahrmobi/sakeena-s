@@ -23,13 +23,13 @@ export function Header() {
       <div className="bg-emerald py-2 text-center text-[11px] uppercase tracking-[0.25em] text-cream">
         Delivery across Pakistan · Flat Rs. 250 · Cash on Delivery available
       </div>
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-4 sm:px-5">
         <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">☰</button>
         <nav className="hidden gap-8 text-sm uppercase tracking-widest md:flex">
           {links.map((l) => <Link key={l.href} href={l.href} className="hover:text-gold">{l.label}</Link>)}
         </nav>
         <Link href="/" aria-label="Sakeena's home"><Logo /></Link>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 sm:gap-5">
           <SearchBox />
           <Link href="/wishlist" aria-label="Wishlist" className="text-sm uppercase tracking-widest hover:text-gold">
             <span aria-hidden>♡</span>

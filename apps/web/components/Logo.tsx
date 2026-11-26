@@ -18,11 +18,11 @@ export function LogoMark({ size = 44, className = "" }: { size?: number; classNa
 
 export function Logo({ light = false }: { light?: boolean }) {
   return (
-    <span className={`flex items-center gap-3 ${light ? "text-cream" : "text-emerald"}`}>
-      <LogoMark />
+    <span className={`flex items-center gap-2 sm:gap-3 ${light ? "text-cream" : "text-emerald"}`}>
+      <LogoMark className="h-8 w-8 shrink-0 sm:h-11 sm:w-11" />
       <span className="leading-none">
-        <span className="block font-display text-2xl tracking-[0.28em]">SAKEENA’S</span>
-        <span className="mt-1 block text-[9px] uppercase tracking-[0.5em] text-gold">Tranquil Elegance</span>
+        <span className="block font-display text-lg tracking-[0.16em] sm:text-2xl sm:tracking-[0.28em]">SAKEENA’S</span>
+        <span className="mt-1 block text-[7px] uppercase tracking-[0.3em] text-gold sm:text-[9px] sm:tracking-[0.5em]">Tranquil Elegance</span>
       </span>
     </span>
   );

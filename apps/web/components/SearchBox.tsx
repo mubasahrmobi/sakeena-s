@@ -31,7 +31,12 @@ export function SearchBox() {
 
   return (
     <div ref={box} className="relative">
-      <button onClick={() => setOpen(!open)} aria-label="Search" className="text-sm uppercase tracking-widest hover:text-gold">Search</button>
+      <button onClick={() => setOpen(!open)} aria-label="Search" className="text-sm uppercase tracking-widest hover:text-gold">
+        <span className="hidden sm:inline">Search</span>
+        <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current sm:hidden" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+          <circle cx="11" cy="11" r="6.5" /><path d="M16 16l5 5" />
+        </svg>
+      </button>
       {open && (
         <div className="absolute right-0 top-9 z-50 w-[min(92vw,380px)] border border-ink/10 bg-white p-3 shadow-xl">
           <form onSubmit={(e) => { e.preventDefault(); go(); }}>
